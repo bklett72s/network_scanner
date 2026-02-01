@@ -2,7 +2,34 @@
 import nmap
 import subprocess
 import re
-import os
+import os, sys
+
+# Make sure NMAP is installed, if not... grab it
+def check_nmap():
+    proc_result = subprocess.run("which nmap", 
+        shell=True, capture_output=True, text=True)
+    if proc_result:
+        print(f"nmap found... {proc_result.stdout}")
+    elif (subprocess.run("make")):
+        try:
+            print("nmap doesnt exist... gathering")
+            subprocess.run("curl -O https://nmap.org/dist/nmap-7.98.tar.bz2", 
+            shell=True, capture_output=True, text=True)
+            subprocess.run("bzip2 -cd nmap-7.98.tar.bz2 | tar xvf - ", 
+            shell=True, capture_output=True, text=True)
+            subprocess.run("cd nmap-7.98 && ./configure && make", 
+            shell=True, capture_output=True, text=True)
+            nmap_location = f"{os.getcwd()}/nmap-7.98"
+
+            sys.path.append(nmap_location) # Append to PATH
+            return 
+        except Exception as e:
+            print(f"ERROR: {e}... Exiting")
+            exit
+    else:
+        print("Unable to execute, nmap nor make exists, exiting...")
+        exit
+        
 
 # Pulls IP Address schema from network connections
 def define_network():
@@ -50,6 +77,7 @@ def main():
     potential_ips = define_network()
     root_flag = is_root()
     cider = "/24"
+    nmap_location = check_nmap()
 
     print(f"IP's detected from host: {potential_ips}")
     for ip in potential_ips:
@@ -57,5 +85,6 @@ def main():
         network_range = f"{ip}{cider}"
         hosts.append(nmap_scan(network_range, root_flag))
         print(f"\nHosts Scanned: {hosts}")
+
 if __name__ == "__main__":
     main()
