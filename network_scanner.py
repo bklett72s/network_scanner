@@ -51,8 +51,10 @@ def nmap_scan(ip_range, root_flag) -> list:
     hosts = []
     
     if root_flag:
+        print("Running privileged scan")
         scanner.scan(hosts=ip_range, arguments='-sS -p-') # Stealth scan **Requires Root
     else: 
+        print("Running unprivileged scan")
         scanner.scan(hosts=ip_range, arguments='-sT -p-') # Ping scan w/ports
 
     for host in scanner.all_hosts():
